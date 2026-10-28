@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}{{ origin.city }} → {{ destination.city }} · Airline<script>
+const fareObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('route-animate');
+            fareObserver.unobserve(entry.target);
+        }
+    });
+}, {threshold:.35});
+document.querySelectorAll('.fare-card').forEach((card) => fareObserver.observe(card));
+</script>
+{% endblock %}
+{% block content %}
+<section class="results-hero">
+    <div class="results-hero-copy">
+        <span class="eyebrow admin-eyebrow">AVAILABLE FLIGHTS</span>
+        <div class="results-route-title">
+            <div><strong>{{ origin.iata_code }}</strong><span>{{ origin.city }}</span></div>
+            <div class="results-route-middle"><i></i><span>✈</span><i></i></div>
+            <div><strong>{{ destination.iata_code }}</strong><span>{{ destination.city }}</span></div>
+        </div>
+        <p>{{ departure_date.strftime('%d.%m.%Y') }} · прямые рейсы · цены за одного пассажира</p>
+    </div>
+    <a class="secondary-button results-change-search" href="{{ url_for('home') }}">← Изменить поиск</a>
+</section>
+
+{% if flights %}
+<section class="fare-list">
+    <div class="fare-list-head">
+        <div><strong>{{ flights|length }}</strong><span>вариант{% if flights|length > 1 %}а{% endif %} найдено</span></div>
+        <span>Свободные места и цены обновляются из PostgreSQL</span>
+    </div>
+
+    {% for flight in flights %}
+    <article class="fare-card">
+        <div class="fare-card-top">
+            <div class="fare-flight-identity">
+                <span class="fare-airline-mark">✦</span>
+                <div><strong>{{ flight.flight_number }}</strong><span>{{ flight.model }} · {{ flight.status }}</span></div>
+            </div>
+            <span class="fare-direct-badge">Прямой рейс</span>
+        </div>
+
+        <div class="fare-card-body">
+            <div class="fare-journey">
+                <div class="fare-stop fare-stop-left">
+                    <strong>{{ flight.departure_time.strftime('%H:%M') }}</strong>
+                    <span>{{ flight.origin_code }}</span>
+                    <small>{{ flight.origin_city }}</small>
+                </div>
+
+                <div class="fare-path">
+                    <small>{{ flight.departure_time.strftime('%d %b') }}</small>
+                    <div class="fare-path-line"><i></i><span class="fare-route-plane">✈</span><i></i></div>
+                    <span>без пересадок</span>
+                </div>
+
+                <div class="fare-stop fare-stop-right">
+                    <strong>{{ flight.arrival_time.strftime('%H:%M') }}</strong>
+                    <span>{{ flight.destination_code }}</span>
+                    <small>{{ flight.destination_city }}</small>
+                </div>
+            </div>
+
+            <div class="fare-meta">
+                <span><i class="fare-dot"></i>{{ flight.available_count }} свободных мест</span>
+                <span>Выбор места на следующем шаге</span>
+            </div>
+        </div>
+
+        <div class="fare-price-panel">
+            <small>Стоимость от</small>
+            <strong>{{ "{:,.0f}".format(flight.min_price).replace(",", " ") }} ₸</strong>
+            <span>за пассажира</span>
+            <a class="button fare-cta" href="{{ url_for('book_flight', flight_id=flight.flight_id) }}">Выбрать рейс <b>→</b></a>
+        </div>
+    </article>
+    {% endfor %}
+</section>
+{% else %}
+<section class="empty-results empty-results-premium">
+    <div class="empty-route-visual" aria-hidden="true">
+        <span class="empty-route-dot"></span><i></i><span class="empty-route-plane">✈</span><i></i><span class="empty-route-dot"></span>
+    </div>
+    <span class="eyebrow admin-eyebrow">NO FLIGHTS TODAY</span>
+    <h2>Сегодня по этому маршруту тишина</h2>
+    <p>На выбранную дату доступных мест нет. Вернитесь к календарю цен — соседний день часто оказывается и доступнее, и дешевле.</p>
+    <a class="button" href="{{ url_for('home') }}">Вернуться к поиску →</a>
+</section>
+{% endif %}
+<script>
+const fareObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('route-animate');
+            fareObserver.unobserve(entry.target);
+        }
+    });
+}, {threshold:.35});
+document.querySelectorAll('.fare-card').forEach((card) => fareObserver.observe(card));
+</script>
+{% endblock %}

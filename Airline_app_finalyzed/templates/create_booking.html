@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+
+<div class="page-header">
+
+    <h1>
+        Create Booking
+    </h1>
+
+
+    <a
+        class="secondary-button"
+        href="{{ url_for('bookings') }}"
+    >
+
+        Back to Bookings
+
+    </a>
+
+</div>
+
+
+{% if error %}
+
+
+<div class="error">
+
+    {{ error }}
+
+</div>
+
+
+{% endif %}
+
+
+<form
+    method="POST"
+    class="form-card booking-form"
+>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+
+    <!-- ======================
+         PASSENGER
+         ====================== -->
+
+
+    <label>
+        Passenger
+    </label>
+
+
+    <select
+        name="passenger_id"
+        required
+    >
+
+        <option value="">
+            Select Passenger
+        </option>
+
+
+        {% for passenger in passengers %}
+
+
+            <option
+                value="{{ passenger.passenger_id }}"
+            >
+
+                {{ passenger.first_name }}
+                {{ passenger.last_name }}
+
+                —
+                {{ passenger.passport_number }}
+
+            </option>
+
+
+        {% endfor %}
+
+
+    </select>
+
+
+    <!-- ======================
+         FLIGHT
+         ====================== -->
+
+
+    <label>
+        Flight
+    </label>
+
+
+    <select
+        name="flight_id"
+        id="flight-select"
+        required
+    >
+
+        <option value="">
+            Select Flight
+        </option>
+
+
+        {% for flight in flights %}
+
+
+            <option
+                value="{{ flight.flight_id }}"
+
+                {% if
+                    preselected_flight_id
+                    == flight.flight_id
+                %}
+
+                    selected
+
+                {% endif %}
+            >
+
+                {{ flight.flight_number }}
+
+                |
+
+                {{ flight.origin }}
+                →
+                {{ flight.destination }}
+
+                |
+
+                {{ flight.departure_time.strftime(
+                    '%Y-%m-%d %H:%M'
+                ) }}
+
+            </option>
+
+
+        {% endfor %}
+
+
+    </select>
+
+
+    <!-- ======================
+         SEAT
+         ====================== -->
+
+
+    <label>
+        Available Seat
+    </label>
+
+
+    <select
+        name="seat_id"
+        id="seat-select"
+        required
+        disabled
+    >
+
+        <option value="">
+            Select a flight first
+        </option>
+
+    </select>
+
+
+    <!-- ======================
+         PRICE PREVIEW
+         ====================== -->
+
+
+    <div
+        id="price-box"
+        class="price-box"
+    >
+
+        Select a seat to see the price.
+
+    </div>
+
+
+    <button
+        type="submit"
+        class="submit-button"
+    >
+
+        Confirm Booking
+
+    </button>
+
+
+</form>
+
+
+<script>
+
+const flightSelect =
+    document.getElementById("flight-select");
+
+const seatSelect =
+    document.getElementById("seat-select");
+
+const priceBox =
+    document.getElementById("price-box");
+
+
+async function loadSeats() {
+
+    const flightId =
+        flightSelect.value;
+
+
+    seatSelect.innerHTML = "";
+
+    priceBox.textContent =
+        "Select a seat to see the price.";
+
+
+    if (!flightId) {
+
+        seatSelect.disabled = true;
+
+        const option =
+            document.createElement("option");
+
+        option.value = "";
+
+        option.textContent =
+            "Select a flight first";
+
+        seatSelect.appendChild(option);
+
+        return;
+    }
+
+
+    seatSelect.disabled = true;
+
+
+    const loading =
+        document.createElement("option");
+
+    loading.value = "";
+
+    loading.textContent =
+        "Loading available seats...";
+
+    seatSelect.appendChild(loading);
+
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/flights/${flightId}/seats`
+            );
+
+
+        const data =
+            await response.json();
+
+
+        seatSelect.innerHTML = "";
+
+
+        if (data.seats.length === 0) {
+
+            const option =
+                document.createElement("option");
+
+            option.value = "";
+
+            option.textContent =
+                "No seats available";
+
+            seatSelect.appendChild(option);
+
+            return;
+        }
+
+
+        const firstOption =
+            document.createElement("option");
+
+        firstOption.value = "";
+
+        firstOption.textContent =
+            "Select Seat";
+
+        seatSelect.appendChild(firstOption);
+
+
+        for (const seat of data.seats) {
+
+            const option =
+                document.createElement("option");
+
+
+            option.value =
+                seat.seat_id;
+
+
+            option.dataset.price =
+                seat.price;
+
+
+            option.textContent =
+                `${seat.seat_number} | ` +
+                `${seat.seat_class} | ` +
+                `${seat.price.toFixed(2)} KZT`;
+
+
+            seatSelect.appendChild(option);
+
+        }
+
+
+        seatSelect.disabled = false;
+
+    }
+
+    catch (error) {
+
+        seatSelect.innerHTML = "";
+
+        const option =
+            document.createElement("option");
+
+        option.value = "";
+
+        option.textContent =
+            "Could not load seats";
+
+        seatSelect.appendChild(option);
+
+    }
+
+}
+
+
+seatSelect.addEventListener(
+    "change",
+    function () {
+
+        const selectedOption =
+            seatSelect.options[
+                seatSelect.selectedIndex
+            ];
+
+
+        const price =
+            selectedOption.dataset.price;
+
+
+        if (!price) {
+
+            priceBox.textContent =
+                "Select a seat to see the price.";
+
+            return;
+        }
+
+
+        priceBox.textContent =
+            `Ticket price: ` +
+            `${Number(price).toFixed(2)} KZT`;
+
+    }
+);
+
+
+flightSelect.addEventListener(
+    "change",
+    loadSeats
+);
+
+
+/*
+If a flight was selected from
+the Flights page using the Book button,
+load its seats immediately.
+*/
+
+if (flightSelect.value) {
+
+    loadSeats();
+
+}
+
+</script>
+
+
+{% endblock %}

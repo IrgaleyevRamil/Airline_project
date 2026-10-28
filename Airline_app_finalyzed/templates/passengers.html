@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="admin-page-head">
+    <div>
+        <span class="eyebrow admin-eyebrow">ADMIN · PASSENGERS</span>
+        <h1>Пассажиры</h1>
+        <p>Управление пассажирами и проверка связанных бронирований.</p>
+    </div>
+    <a class="button" href="{{ url_for('add_passenger') }}">+ Добавить пассажира</a>
+</section>
+
+<div class="admin-toolbar">
+    <input id="passenger-search" class="admin-search" type="search"
+           placeholder="Поиск по имени, паспорту, email или телефону…" autocomplete="off">
+    <span class="admin-count"><strong id="passenger-count">{{ passengers|length }}</strong>&nbsp;записей</span>
+</div>
+
+<div class="table-container admin-table-wrap">
+<table id="passengers-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Пассажир</th>
+            <th>Дата рождения</th>
+            <th>Email</th>
+            <th>Телефон</th>
+            <th>Паспорт</th>
+            <th>Брони</th>
+            <th>Действие</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for passenger in passengers %}
+        <tr data-search="{{ passenger.first_name|lower }} {{ passenger.last_name|lower }} {{ (passenger.passport_number or '')|lower }} {{ (passenger.email or '')|lower }} {{ (passenger.phone or '')|lower }}">
+            <td>#{{ passenger.passenger_id }}</td>
+            <td>
+                <strong>{{ passenger.first_name }} {{ passenger.last_name }}</strong>
+                {% if passenger.loyalty_number %}
+                    <div class="small-text">{{ passenger.loyalty_number }}</div>
+                {% endif %}
+            </td>
+            <td>{{ passenger.date_of_birth }}</td>
+            <td>{{ passenger.email or "—" }}</td>
+            <td>{{ passenger.phone or "—" }}</td>
+            <td><code>{{ passenger.passport_number }}</code></td>
+            <td>
+                {% if passenger.booking_count %}
+                    <span class="count-pill has-items">{{ passenger.booking_count }}</span>
+                {% else %}
+                    <span class="count-pill">0</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if passenger.booking_count == 0 %}
+                    <form method="post"
+                          action="{{ url_for('delete_passenger', passenger_id=passenger.passenger_id) }}"
+                          onsubmit="return confirm('Удалить пассажира {{ passenger.first_name }} {{ passenger.last_name }}? Это действие нельзя отменить.');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="danger-button" type="submit">Удалить</button>
+                    </form>
+                {% else %}
+                    <span class="locked-action" title="Сначала удалите связанные брони">Есть брони</span>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<div id="passenger-empty" class="admin-empty" hidden>Ничего не найдено.</div>
+
+<script>
+const passengerSearch = document.getElementById('passenger-search');
+const passengerRows = Array.from(document.querySelectorAll('#passengers-table tbody tr'));
+const passengerCount = document.getElementById('passenger-count');
+const passengerEmpty = document.getElementById('passenger-empty');
+
+passengerSearch.addEventListener('input', () => {
+    const query = passengerSearch.value.trim().toLowerCase();
+    let visible = 0;
+
+    passengerRows.forEach((row) => {
+        const match = row.dataset.search.includes(query);
+        row.hidden = !match;
+        if (match) visible++;
+    });
+
+    passengerCount.textContent = visible;
+    passengerEmpty.hidden = visible !== 0;
+});
+</script>
+{% endblock %}

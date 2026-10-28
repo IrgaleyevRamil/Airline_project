@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#071a2c">
+    <title>{% block title %}Airline Booking System{% endblock %}</title>
+    <script>
+        (() => {
+            try {
+                const saved = localStorage.getItem('airline-theme');
+                document.documentElement.dataset.theme = saved || 'light';
+            } catch (_) {
+                document.documentElement.dataset.theme = 'light';
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=6">
+</head>
+<body class="{% if request.path.startswith('/admin') %}admin-context{% else %}public-context{% endif %}">
+<header class="site-header">
+    <nav class="site-nav">
+        <a class="brand" href="{{ url_for('home') }}" aria-label="Airline Booking System — главная">
+            <span class="brand-mark" aria-hidden="true"><span>✦</span></span>
+            <span class="brand-copy">
+                <strong>AIRLINE</strong>
+                <small>Booking System</small>
+            </span>
+        </a>
+
+        <div class="nav-links public-nav">
+            <a class="nav-link {% if request.endpoint == 'home' %}nav-link-active{% endif %}" href="{{ url_for('home') }}">Главная</a>
+            <a class="nav-link {% if request.endpoint in ['destinations', 'destination_detail'] %}nav-link-active{% endif %}" href="{{ url_for('destinations') }}">Направления</a>
+            <a class="nav-link {% if request.endpoint == 'flight_globe' %}nav-link-active{% endif %}" href="{{ url_for('flight_globe') }}">Карта полётов</a>
+            <a class="nav-link {% if request.endpoint == 'journey' %}nav-link-active{% endif %}" href="{{ url_for('journey') }}">Вдохновение</a>
+            <a class="nav-link {% if request.endpoint in ['manage_booking', 'cancel_public_booking'] %}nav-link-active{% endif %}" href="{{ url_for('manage_booking') }}">Мои бронирования</a>
+        </div>
+
+        {% if session.get('is_admin') %}
+        <div class="staff-nav">
+            <span class="staff-badge"><i></i> Staff mode</span>
+            <a class="nav-link {% if request.endpoint == 'dashboard' %}nav-link-active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a class="nav-link {% if request.endpoint in ['flights', 'create_flight', 'edit_flight', 'cancel_flight'] %}nav-link-active{% endif %}" href="{{ url_for('flights') }}">Рейсы</a>
+            <a class="nav-link {% if request.endpoint in ['passengers', 'add_passenger', 'delete_passenger'] %}nav-link-active{% endif %}" href="{{ url_for('passengers') }}">Пассажиры</a>
+            <a class="nav-link {% if request.endpoint in ['bookings', 'create_booking', 'delete_booking'] %}nav-link-active{% endif %}" href="{{ url_for('bookings') }}">Брони</a>
+            <button class="theme-toggle" type="button" data-theme-toggle aria-label="Переключить тему" title="Переключить тему">
+                <span class="theme-toggle-icon" data-theme-icon>☾</span>
+            </button>
+            <form method="post" action="{{ url_for('admin_logout') }}" class="nav-logout">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" title="Выйти из админ-панели">Выйти</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="nav-actions">
+            <button class="theme-toggle" type="button" data-theme-toggle aria-label="Переключить тему" title="Переключить тему">
+                <span class="theme-toggle-icon" data-theme-icon>☾</span>
+            </button>
+            <a class="nav-primary" href="{{ url_for('home') }}#flight-search-form">Найти рейс <span>↗</span></a>
+        </div>
+        {% endif %}
+    </nav>
+</header>
+
+<main class="site-main">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-stack" aria-live="polite">
+                {% for message in messages %}
+                    <div class="success flash-toast" data-toast>
+                        <span class="flash-icon">✓</span>
+                        <span class="flash-message">{{ message }}</span>
+                        <button class="flash-close" type="button" data-toast-close aria-label="Закрыть">×</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+    <div><strong>AIRLINE</strong><span>Portfolio database project · Flask + PostgreSQL</span></div>
+    <span>Designed as a product prototype</span>
+</footer>
+<script>
+(function () {
+    function syncThemeButton() {
+        const dark = document.documentElement.dataset.theme === 'dark';
+        document.querySelectorAll('[data-theme-icon]').forEach((icon) => {
+            icon.textContent = dark ? '☀' : '☾';
+        });
+        document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
+            button.setAttribute('aria-label', dark ? 'Включить светлую тему' : 'Включить тёмную тему');
+            button.title = dark ? 'Светлая тема' : 'Тёмная тема';
+        });
+    }
+
+    document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+            document.documentElement.dataset.theme = next;
+            try { localStorage.setItem('airline-theme', next); } catch (_) {}
+            syncThemeButton();
+        });
+    });
+    syncThemeButton();
+
+    function dismissToast(toast) {
+        if (!toast || toast.classList.contains('toast-leaving')) return;
+        toast.classList.add('toast-leaving');
+        setTimeout(() => toast.remove(), 260);
+    }
+
+    document.querySelectorAll('[data-toast]').forEach((toast, index) => {
+        const timer = setTimeout(() => dismissToast(toast), 4200 + index * 450);
+        toast.querySelector('[data-toast-close]')?.addEventListener('click', () => {
+            clearTimeout(timer);
+            dismissToast(toast);
+        });
+    });
+
+    window.airlineToast = function (message, type = 'success') {
+        let stack = document.querySelector('.flash-stack');
+        if (!stack) {
+            stack = document.createElement('div');
+            stack.className = 'flash-stack';
+            stack.setAttribute('aria-live', 'polite');
+            document.body.appendChild(stack);
+        }
+        const toast = document.createElement('div');
+        toast.className = `flash-toast ${type}`;
+        toast.dataset.toast = '';
+        const icon = document.createElement('span');
+        icon.className = 'flash-icon';
+        icon.textContent = type === 'error' ? '!' : '✓';
+        const text = document.createElement('span');
+        text.className = 'flash-message';
+        text.textContent = message;
+        const close = document.createElement('button');
+        close.className = 'flash-close';
+        close.type = 'button';
+        close.setAttribute('aria-label', 'Закрыть');
+        close.textContent = '×';
+        toast.append(icon, text, close);
+        stack.appendChild(toast);
+        close.addEventListener('click', () => dismissToast(toast));
+        setTimeout(() => dismissToast(toast), 4200);
+    };
+})();
+</script>
+</body>
+</html>

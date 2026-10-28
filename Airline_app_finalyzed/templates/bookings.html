@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="admin-page-head">
+    <div>
+        <span class="eyebrow admin-eyebrow">ADMIN · BOOKINGS</span>
+        <h1>Бронирования</h1>
+        <p>Просмотр, поиск и безопасное удаление бронирований.</p>
+    </div>
+    <a class="button" href="{{ url_for('create_booking') }}">+ Создать бронь</a>
+</section>
+
+<div class="admin-toolbar">
+    <input id="booking-search" class="admin-search" type="search"
+           placeholder="Номер брони, пассажир, рейс, маршрут…" autocomplete="off">
+    <span class="admin-count"><strong id="booking-count">{{ bookings|length }}</strong>&nbsp;броней</span>
+</div>
+
+<div class="table-container admin-table-wrap">
+<table id="bookings-table">
+    <thead>
+        <tr>
+            <th>Бронь</th>
+            <th>Пассажир</th>
+            <th>Рейс</th>
+            <th>Маршрут</th>
+            <th>Место</th>
+            <th>Цена</th>
+            <th>Статус</th>
+            <th>Билет</th>
+            <th>Действие</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for booking in bookings %}
+        <tr data-search="{{ booking.booking_reference|lower }} {{ booking.first_name|lower }} {{ booking.last_name|lower }} {{ (booking.flight_number or '')|lower }} {{ (booking.origin or '')|lower }} {{ (booking.destination or '')|lower }}">
+            <td>
+                <strong>{{ booking.booking_reference }}</strong>
+                <div class="small-text">#{{ booking.booking_id }}</div>
+            </td>
+            <td>{{ booking.first_name }} {{ booking.last_name }}</td>
+            <td>{{ booking.flight_number or "—" }}</td>
+            <td>
+                {% if booking.origin %}
+                    <strong>{{ booking.origin }}</strong> → <strong>{{ booking.destination }}</strong>
+                {% else %}—{% endif %}
+            </td>
+            <td>
+                {% if booking.seat_number %}
+                    {{ booking.seat_number }} <span class="small-text">· {{ booking.seat_class }}</span>
+                {% else %}—{% endif %}
+            </td>
+            <td>
+                {% if booking.price is not none %}
+                    {{ "{:,.0f}".format(booking.price).replace(",", " ") }} ₸
+                {% else %}—{% endif %}
+            </td>
+            <td><span class="status status-chip">{{ booking.booking_status }}</span></td>
+            <td>{{ booking.ticket_number or "—" }}</td>
+            <td>
+                <form method="post"
+                      action="{{ url_for('delete_booking', booking_id=booking.booking_id) }}"
+                      onsubmit="return confirm('Удалить бронь {{ booking.booking_reference }}? Билет и связанная оплата тоже будут удалены.');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="danger-button" type="submit">Удалить</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<div id="booking-empty" class="admin-empty" hidden>Ничего не найдено.</div>
+
+<script>
+const bookingSearch = document.getElementById('booking-search');
+const bookingRows = Array.from(document.querySelectorAll('#bookings-table tbody tr'));
+const bookingCount = document.getElementById('booking-count');
+const bookingEmpty = document.getElementById('booking-empty');
+
+bookingSearch.addEventListener('input', () => {
+    const query = bookingSearch.value.trim().toLowerCase();
+    let visible = 0;
+
+    bookingRows.forEach((row) => {
+        const match = row.dataset.search.includes(query);
+        row.hidden = !match;
+        if (match) visible++;
+    });
+
+    bookingCount.textContent = visible;
+    bookingEmpty.hidden = visible !== 0;
+});
+</script>
+{% endblock %}

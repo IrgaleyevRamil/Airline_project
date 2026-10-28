@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="checkout-heading">
+    <a href="{{ url_for('home') }}">← Новый поиск</a>
+    <span class="eyebrow admin-eyebrow">SEAT SELECTION</span>
+    <h1>Выберите место в самолёте</h1>
+    <p><strong>{{ flight.origin_city }} → {{ flight.destination_city }}</strong> · {{ flight.flight_number }} · {{ flight.departure_time.strftime('%d.%m.%Y %H:%M') }}</p>
+</div>
+
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+<form method="post" class="seat-checkout-form" id="booking-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="seat_id" id="seat_id" value="{{ request.form.get('seat_id', '') }}">
+
+    <section class="seat-map-card">
+        <div class="seat-map-head">
+            <div>
+                <span class="eyebrow admin-eyebrow">CABIN MAP</span>
+                <h2>Салон самолёта</h2>
+                <p id="aircraft-info">Загружаем схему мест…</p>
+            </div>
+            <div class="seat-legend">
+                <span><i class="legend-seat free"></i>Свободно</span>
+                <span><i class="legend-seat selected"></i>Выбрано</span>
+                <span><i class="legend-seat occupied"></i>Занято</span>
+            </div>
+        </div>
+
+        <div class="aircraft-shell">
+            <div class="aircraft-nose">✈</div>
+            <div id="seat-map" class="seat-map-loading">Загрузка мест…</div>
+        </div>
+    </section>
+
+    <aside class="customer-data-card">
+        <span class="eyebrow admin-eyebrow">PASSENGER DETAILS</span>
+        <h2>Данные пассажира</h2>
+
+        <div class="selected-seat-summary" id="seat-summary">
+            <div><small>Место</small><strong id="selected-seat-number">Не выбрано</strong></div>
+            <div><small>Класс</small><strong id="selected-seat-class">—</strong></div>
+            <div><small>Стоимость</small><strong id="selected-seat-price">—</strong></div>
+        </div>
+
+        <label for="first_name">Имя</label>
+        <input id="first_name" name="first_name" maxlength="50" value="{{ request.form.get('first_name', '') }}" required>
+
+        <label for="last_name">Фамилия</label>
+        <input id="last_name" name="last_name" maxlength="50" value="{{ request.form.get('last_name', '') }}" required>
+
+        <label for="date_of_birth">Дата рождения</label>
+        <input id="date_of_birth" type="date" name="date_of_birth" value="{{ request.form.get('date_of_birth', '') }}" required>
+
+        <label for="passport_number">Номер паспорта</label>
+        <input id="passport_number" name="passport_number" maxlength="20" value="{{ request.form.get('passport_number', '') }}" required>
+
+        <label for="email">Email <span>(необязательно)</span></label>
+        <input id="email" type="email" name="email" maxlength="100" value="{{ request.form.get('email', '') }}">
+
+        <label for="phone">Телефон <span>(необязательно)</span></label>
+        <input id="phone" name="phone" maxlength="20" value="{{ request.form.get('phone', '') }}">
+
+        <p class="demo-note">Учебный проект: оформление демонстрационное, деньги не списываются.</p>
+        <button type="submit" class="submit-button booking-submit" id="booking-submit">Подтвердить бронирование</button>
+    </aside>
+</form>
+<div id="seat-hover-card" class="seat-hover-card" role="tooltip" hidden></div>
+
+<script>
+const seatMap = document.getElementById('seat-map');
+const seatInput = document.getElementById('seat_id');
+const seatNumber = document.getElementById('selected-seat-number');
+const seatClass = document.getElementById('selected-seat-class');
+const seatPrice = document.getElementById('selected-seat-price');
+const aircraftInfo = document.getElementById('aircraft-info');
+const bookingForm = document.getElementById('booking-form');
+const seatHoverCard = document.getElementById('seat-hover-card');
+const previousSeat = {{ (request.form.get('seat_id', '') or '') | tojson }};
+let selectedSeat = null;
+
+function money(value) {
+    return Math.round(Number(value)).toLocaleString('ru-RU') + ' ₸';
+}
+
+function chooseSeat(seat, button) {
+    if (!seat.available) return;
+
+    document.querySelectorAll('.air-seat.selected').forEach((item) => item.classList.remove('selected'));
+    button.classList.add('selected');
+    selectedSeat = seat;
+    seatInput.value = seat.seat_id;
+    seatNumber.textContent = seat.seat_number;
+    seatClass.textContent = seat.seat_class;
+    seatPrice.textContent = money(seat.price);
+}
+
+
+function seatPositionLabel(seat) {
+    const col = String(seat.column || '').toUpperCase();
+    if (['A', 'F'].includes(col)) return 'У окна';
+    if (['C', 'D'].includes(col)) return 'У прохода';
+    return 'Среднее место';
+}
+
+function positionSeatTip(button) {
+    if (!seatHoverCard || seatHoverCard.hidden) return;
+    const rect = button.getBoundingClientRect();
+    const tipRect = seatHoverCard.getBoundingClientRect();
+    let left = rect.left + rect.width / 2 - tipRect.width / 2;
+    left = Math.max(12, Math.min(left, window.innerWidth - tipRect.width - 12));
+    let top = rect.top - tipRect.height - 10;
+    if (top < 12) top = rect.bottom + 10;
+    seatHoverCard.style.left = `${left}px`;
+    seatHoverCard.style.top = `${top}px`;
+}
+
+function showSeatTip(seat, button) {
+    if (!seatHoverCard) return;
+    seatHoverCard.replaceChildren();
+    const head = document.createElement('div');
+    head.className = 'seat-tip-head';
+    const number = document.createElement('strong'); number.textContent = seat.seat_number;
+    const state = document.createElement('span'); state.textContent = seat.available ? 'Свободно' : 'Занято';
+    head.append(number, state);
+    const meta = document.createElement('div'); meta.className = 'seat-tip-meta';
+    const cls = document.createElement('span'); cls.textContent = seat.seat_class;
+    const pos = document.createElement('span'); pos.textContent = seatPositionLabel(seat);
+    meta.append(cls, pos);
+    seatHoverCard.append(head, meta);
+    if (seat.available) {
+        const price = document.createElement('div'); price.className = 'seat-tip-price'; price.textContent = money(seat.price);
+        seatHoverCard.appendChild(price);
+    }
+    seatHoverCard.hidden = false;
+    requestAnimationFrame(() => { seatHoverCard.classList.add('visible'); positionSeatTip(button); });
+}
+
+function hideSeatTip() {
+    if (!seatHoverCard) return;
+    seatHoverCard.classList.remove('visible');
+    setTimeout(() => { if (!seatHoverCard.classList.contains('visible')) seatHoverCard.hidden = true; }, 120);
+}
+
+function makeSeatButton(seat) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'air-seat seat-' + seat.seat_class.toLowerCase();
+    button.textContent = seat.column;
+    button.title = seat.available
+        ? `${seat.seat_number} · ${seat.seat_class} · ${money(seat.price)}`
+        : `${seat.seat_number} · занято`;
+    button.addEventListener('mouseenter', () => showSeatTip(seat, button));
+    button.addEventListener('mouseleave', hideSeatTip);
+    button.addEventListener('focus', () => showSeatTip(seat, button));
+    button.addEventListener('blur', hideSeatTip);
+
+    if (!seat.available) {
+        button.disabled = true;
+        button.classList.add('occupied');
+    } else {
+        button.addEventListener('click', () => chooseSeat(seat, button));
+    }
+
+    if (String(previousSeat) === String(seat.seat_id) && seat.available) {
+        setTimeout(() => chooseSeat(seat, button), 0);
+    }
+    return button;
+}
+
+function renderSeatMap(seats) {
+    seatMap.className = 'seat-map-body';
+    seatMap.replaceChildren();
+
+    const rows = new Map();
+    for (const seat of seats) {
+        const rowKey = seat.row ?? seat.seat_number;
+        if (!rows.has(rowKey)) rows.set(rowKey, []);
+        rows.get(rowKey).push(seat);
+    }
+
+    let previousClass = null;
+    for (const [rowNumber, rowSeatsRaw] of rows.entries()) {
+        const rowSeats = [...rowSeatsRaw].sort((a, b) => a.column.localeCompare(b.column));
+        const currentClass = rowSeats[0]?.seat_class || 'Economy';
+
+        if (currentClass !== previousClass) {
+            const divider = document.createElement('div');
+            divider.className = 'cabin-class-divider';
+            divider.innerHTML = `<span>${currentClass}</span><small>${currentClass === 'Business' ? 'больше пространства' : currentClass === 'First' ? 'premium cabin' : 'standard cabin'}</small>`;
+            seatMap.appendChild(divider);
+            previousClass = currentClass;
+        }
+
+        const row = document.createElement('div');
+        row.className = 'aircraft-row';
+
+        const midpoint = Math.ceil(rowSeats.length / 2);
+        const left = document.createElement('div');
+        left.className = 'seat-side left';
+        const right = document.createElement('div');
+        right.className = 'seat-side right';
+
+        rowSeats.slice(0, midpoint).forEach((seat) => left.appendChild(makeSeatButton(seat)));
+        rowSeats.slice(midpoint).forEach((seat) => right.appendChild(makeSeatButton(seat)));
+
+        const label = document.createElement('span');
+        label.className = 'seat-row-number';
+        label.textContent = rowNumber;
+
+        row.append(left, label, right);
+        seatMap.appendChild(row);
+    }
+}
+
+async function loadSeatMap() {
+    try {
+        const response = await fetch({{ url_for('flight_seat_map', flight_id=flight.flight_id) | tojson }});
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const data = await response.json();
+        aircraftInfo.textContent = `${data.flight.model} · ${data.flight.registration_number} · нажмите на свободное место`;
+        renderSeatMap(data.seats);
+    } catch (error) {
+        console.error(error);
+        seatMap.className = 'seat-map-error';
+        seatMap.textContent = 'Не удалось загрузить схему салона. Обновите страницу.';
+    }
+}
+
+bookingForm.addEventListener('submit', (event) => {
+    if (!seatInput.value) {
+        event.preventDefault();
+        document.querySelector('.seat-map-card').scrollIntoView({behavior: 'smooth', block: 'start'});
+        seatNumber.textContent = 'Сначала выберите место';
+    }
+});
+
+window.addEventListener('scroll', hideSeatTip, {passive:true});
+window.addEventListener('resize', hideSeatTip);
+
+loadSeatMap();
+</script>
+{% endblock %}

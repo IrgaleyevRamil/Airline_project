@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block content %}
+{% set selected_route = request.form.get('route_id', flight.route_id if flight else '') %}
+{% set selected_aircraft = request.form.get('aircraft_id', flight.aircraft_id if flight else '') %}
+{% set selected_status = request.form.get('status', flight.status if flight else 'Scheduled') %}
+
+<section class="admin-page-head">
+    <div>
+        <a class="detail-back" href="{{ url_for('flights') }}">← Все рейсы</a>
+        <span class="eyebrow admin-eyebrow">ADMIN · FLIGHT CONTROL</span>
+        <h1>{% if mode == 'create' %}Создать рейс{% else %}Редактировать {{ flight.flight_number }}{% endif %}</h1>
+        <p>Маршрут, самолёт, расписание и операционный статус.</p>
+    </div>
+</section>
+
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+<form method="post" class="flight-editor-card">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="flight-form-grid">
+        <label>
+            <span>Номер рейса</span>
+            <input name="flight_number" maxlength="10" required
+                   value="{{ request.form.get('flight_number', flight.flight_number if flight else '') }}"
+                   placeholder="KC101">
+        </label>
+
+        <label>
+            <span>Статус</span>
+            <select name="status" required>
+                {% for status in ['Scheduled', 'Boarding', 'Departed', 'Arrived'] %}
+                    <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>{{ status }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label class="span-2">
+            <span>Маршрут</span>
+            {% if mode == 'edit' and flight.ticket_count > 0 %}
+                <input type="hidden" name="route_id" value="{{ flight.route_id }}">
+                <select disabled>
+                    {% for route in routes %}
+                        {% if route.route_id == flight.route_id %}
+                            <option selected>{{ route.origin_code }} · {{ route.origin_city }} → {{ route.destination_code }} · {{ route.destination_city }} · {{ route.distance_km }} км</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <small>Маршрут заблокирован: на рейс уже выпущены билеты.</small>
+            {% else %}
+                <select name="route_id" required>
+                    <option value="">Выберите маршрут</option>
+                    {% for route in routes %}
+                        <option value="{{ route.route_id }}" {% if selected_route|string == route.route_id|string %}selected{% endif %}>
+                            {{ route.origin_code }} · {{ route.origin_city }} → {{ route.destination_code }} · {{ route.destination_city }} · {{ route.distance_km }} км
+                        </option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+        </label>
+
+        <label class="span-2">
+            <span>Самолёт</span>
+            {% if mode == 'edit' and flight.ticket_count > 0 %}
+                <input type="hidden" name="aircraft_id" value="{{ flight.aircraft_id }}">
+                <select disabled>
+                    {% for plane in aircraft %}
+                        {% if plane.aircraft_id == flight.aircraft_id %}
+                            <option selected>{{ plane.manufacturer }} {{ plane.model }} · {{ plane.registration_number }} · {{ plane.seat_count }} мест</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <small>Самолёт заблокирован для изменения: на рейс уже выпущены билеты.</small>
+            {% else %}
+                <select name="aircraft_id" required>
+                    <option value="">Выберите самолёт</option>
+                    {% for plane in aircraft %}
+                        <option value="{{ plane.aircraft_id }}"
+                                {% if not plane.in_service or not plane.seat_count %}disabled{% endif %}
+                                {% if selected_aircraft|string == plane.aircraft_id|string %}selected{% endif %}>
+                            {{ plane.manufacturer }} {{ plane.model }} · {{ plane.registration_number }} · {{ plane.seat_count }} мест{% if not plane.in_service %} · вне эксплуатации{% elif not plane.seat_count %} · нет схемы мест{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+        </label>
+
+        <label>
+            <span>Вылет</span>
+            <input type="datetime-local" name="departure_time" required
+                   value="{{ request.form.get('departure_time', flight.departure_time.strftime('%Y-%m-%dT%H:%M') if flight else '') }}">
+        </label>
+
+        <label>
+            <span>Прилёт</span>
+            <input type="datetime-local" name="arrival_time" required
+                   value="{{ request.form.get('arrival_time', flight.arrival_time.strftime('%Y-%m-%dT%H:%M') if flight else '') }}">
+        </label>
+    </div>
+
+    <div class="flight-form-footer">
+        <a class="secondary-button" href="{{ url_for('flights') }}">Отмена</a>
+        <button class="submit-button" type="submit">{% if mode == 'create' %}Создать рейс{% else %}Сохранить изменения{% endif %}</button>
+    </div>
+</form>
+{% endblock %}

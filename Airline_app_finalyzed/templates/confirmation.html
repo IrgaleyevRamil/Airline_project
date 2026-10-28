@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="confirmation-card">
+    <span class="eyebrow">БРОНИРОВАНИЕ СОЗДАНО</span>
+    <h1>Ваш билет готов</h1>
+    <p class="demo-note">Это демонстрационное бронирование учебного проекта. Оплата не проводилась.</p>
+    <div class="confirmation-grid">
+        <div><small>Номер брони</small><strong>{{ booking.booking_reference }}</strong></div>
+        <div><small>Пассажир</small><strong>{{ booking.first_name }} {{ booking.last_name }}</strong></div>
+        <div><small>Маршрут</small><strong>{{ booking.origin_city }} → {{ booking.destination_city }}</strong></div>
+        <div><small>Рейс и вылет</small><strong>{{ booking.flight_number }} · {{ booking.departure_time.strftime('%d.%m.%Y %H:%M') }}</strong></div>
+        <div><small>Место</small><strong>{{ booking.seat_number }} · {{ booking.seat_class }}</strong></div>
+        <div><small>Стоимость</small><strong>{{ booking.price }} ₸</strong></div>
+        <div><small>Номер билета</small><strong>{{ booking.ticket_number }}</strong></div>
+    </div>
+    <p class="confirmation-hint">Сохраните номер брони. Эта страница доступна только в текущей сессии браузера.</p>
+    <div class="confirmation-actions">
+        <a href="{{ url_for('manage_booking') }}" class="button">Управление бронированием</a>
+        <a href="{{ url_for('home') }}" class="secondary-button">На главную</a>
+    </div>
+</section>
+{% endblock %}

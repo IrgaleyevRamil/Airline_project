@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+.dest-page{position:relative;padding:24px 0 72px;overflow:hidden}.dest-hero{position:relative;min-height:300px;border-radius:32px;overflow:hidden;display:flex;align-items:flex-end;padding:42px;color:#fff;background:linear-gradient(125deg,#07172d,#0b5276 65%,#1aa0bd);box-shadow:0 28px 70px rgba(15,23,42,.18)}.dest-hero:before{content:"";position:absolute;width:470px;height:470px;border-radius:50%;right:-80px;top:-220px;background:#6ee7f9;opacity:.16;filter:blur(15px);animation:heroFloat 7s ease-in-out infinite alternate}.dest-hero:after{content:"✈";position:absolute;right:8%;top:10%;font-size:clamp(90px,15vw,210px);opacity:.08;transform:rotate(-12deg)}@keyframes heroFloat{to{transform:translate(-55px,55px) scale(1.12)}}.dest-hero-copy{position:relative;z-index:2;max-width:760px;animation:destIntro .75s cubic-bezier(.2,.8,.2,1) both}.dest-hero h1{margin:12px 0 16px;font-size:clamp(34px,4.7vw,56px);line-height:1.02;letter-spacing:-.04em;color:#f8fcff;text-shadow:0 2px 18px rgba(4,18,32,.2)}.dest-hero p{max-width:660px;margin:0;color:rgba(255,255,255,.82);font-size:16px;line-height:1.58;color:rgba(255,255,255,.9)}@keyframes destIntro{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}.dest-toolbar{display:flex;gap:14px;align-items:center;margin:30px 0 24px}.dest-search{flex:1;min-height:54px;padding:0 18px;border:1px solid #dbe3ec;border-radius:16px;background:#fff;font:inherit;box-shadow:0 10px 30px rgba(15,23,42,.06);outline:none}.dest-search:focus{border-color:#0f8daf;box-shadow:0 0 0 4px rgba(15,141,175,.12)}.dest-count{min-height:54px;padding:0 18px;display:flex;align-items:center;border-radius:16px;background:#e7f8fc;color:#08708d;font-weight:800;white-space:nowrap}.dest-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.dest-card{position:relative;overflow:hidden;border:1px solid #e3e9ef;border-radius:22px;background:#fff;box-shadow:0 12px 34px rgba(15,23,42,.07);cursor:pointer;opacity:0;transform:translateY(30px) scale(.985);transition:opacity .55s ease,transform .55s cubic-bezier(.2,.8,.2,1),box-shadow .25s ease,border-color .25s ease}.dest-card.visible{opacity:1;transform:none}.dest-card:hover{transform:translateY(-8px) scale(1.008);box-shadow:0 25px 62px rgba(15,23,42,.15);border-color:#b8d9e6}.dest-photo-wrap{position:relative;height:280px;overflow:hidden;background:linear-gradient(135deg,#dbeafe,#cffafe)}.dest-photo{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transform:scale(1.04);transition:opacity .35s ease,transform .8s cubic-bezier(.2,.8,.2,1)}.dest-photo.loaded{opacity:1}.dest-card:hover .dest-photo{transform:scale(1.12)}.dest-shade{position:absolute;inset:0;background:linear-gradient(to top,rgba(3,18,38,.92),rgba(3,18,38,.28) 56%,rgba(3,18,38,.03) 82%,transparent)}.dest-iata{position:absolute;top:16px;right:16px;padding:8px 12px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(8,25,48,.58);backdrop-filter:blur(12px);color:#fff;font-size:12px;font-weight:900;letter-spacing:.12em}.dest-photo-title{position:absolute;left:20px;right:20px;bottom:18px;color:#fff}.dest-photo-title h2{margin:0;font-size:30px;letter-spacing:-.03em;color:#fff!important;text-shadow:0 2px 14px rgba(0,0,0,.45)}.dest-photo-title p{margin:5px 0 0;color:rgba(255,255,255,.8)}.dest-body{padding:21px}.dest-description{margin:0;min-height:88px;color:#5b6677;font-size:14px;line-height:1.62}.dest-tags{display:flex;flex-wrap:wrap;gap:7px;margin:17px 0}.dest-tag{padding:7px 10px;border-radius:999px;background:#f0f7fa;color:#286177;font-size:11px;font-weight:800}.dest-stats{display:flex;justify-content:space-between;gap:14px;padding:16px 0;border-top:1px solid #edf1f5}.dest-stat{display:flex;flex-direction:column;gap:4px}.dest-stat small{font-size:10px;font-weight:900;letter-spacing:.07em;text-transform:uppercase;color:#94a3b8}.dest-stat strong{color:#172033}.dest-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:4px}.dest-guide-btn,.dest-flight-btn{min-height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:13px;font-weight:900}.dest-guide-btn{background:#eef6f9;color:#155e75}.dest-guide-btn:hover{background:#dff2f8}.dest-flight-btn{background:#0f8daf;color:#fff}.dest-flight-btn:hover{background:#087895}.dest-open-hint{position:absolute;right:16px;bottom:16px;pointer-events:none;width:35px;height:35px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#0f8daf;box-shadow:0 7px 20px rgba(15,23,42,.12);opacity:0;transform:translateY(6px);transition:.2s}.dest-card:hover .dest-open-hint{opacity:1;transform:none}.dest-empty{display:none;grid-column:1/-1;padding:50px 24px;text-align:center;border:1px dashed #cbd5e1;border-radius:24px;background:#fff;color:#64748b}@media(max-width:1100px){.dest-grid{grid-template-columns:repeat(2,1fr)}.dest-photo-wrap{height:260px}}@media(max-width:720px){.dest-hero{min-height:390px;padding:34px 24px}.dest-toolbar{flex-direction:column;align-items:stretch}.dest-grid{grid-template-columns:1fr}.dest-photo-wrap{height:240px}.dest-description{min-height:0}}@media(prefers-reduced-motion:reduce){.dest-hero:before,.dest-hero-copy{animation:none}.dest-card{opacity:1;transform:none;transition:none}}
+</style>
+
+<style>
+/* V3 ROOT FIX — direct heading color + tighter destination cards */
+.dest-page { padding: 14px 0 52px !important; }
+.dest-hero {
+    min-height: 270px !important;
+    padding: 36px 40px !important;
+    border-radius: 24px !important;
+}
+.dest-hero h1 {
+    margin: 10px 0 12px !important;
+    font-size: clamp(34px, 4.2vw, 52px) !important;
+    line-height: 1.02 !important;
+    color: #f8fdff !important;
+    text-shadow: 0 2px 18px rgba(3,15,28,.24) !important;
+}
+.dest-hero p { font-size: 16px !important; color: rgba(245,251,255,.90) !important; }
+.dest-toolbar { margin: 22px 0 18px !important; }
+.dest-search, .dest-count { min-height: 48px !important; border-radius: 13px !important; }
+.dest-grid { gap: 18px !important; }
+.dest-card { border-radius: 20px !important; }
+.dest-card:hover { transform: translateY(-4px) !important; }
+.dest-photo-wrap { height: 190px !important; }
+.dest-shade { background: linear-gradient(to top,rgba(3,18,38,.86),rgba(3,18,38,.16) 62%,transparent) !important; }
+.dest-photo-title h2 {
+    margin: 0 !important;
+    font-size: 26px !important;
+    line-height: 1.08 !important;
+    color: #fff !important;
+    text-shadow: 0 2px 14px rgba(0,0,0,.48) !important;
+}
+.dest-photo-title p {
+    margin-top: 5px !important;
+    color: rgba(255,255,255,.90) !important;
+    text-shadow: 0 1px 8px rgba(0,0,0,.42) !important;
+}
+.dest-body { padding: 18px !important; }
+.dest-description { min-height: 66px !important; font-size: 13.5px !important; line-height: 1.55 !important; }
+.dest-tags { margin: 13px 0 !important; }
+.dest-tag { padding: 6px 9px !important; font-size: 10px !important; }
+.dest-stats { padding: 13px 0 !important; }
+.dest-actions { gap: 8px !important; }
+.dest-guide-btn, .dest-flight-btn { min-height: 42px !important; border-radius: 11px !important; }
+.dest-open-hint { display: none !important; }
+@media(max-width:720px){
+    .dest-hero { min-height: 250px !important; padding: 28px 24px !important; }
+    .dest-photo-wrap { height: 205px !important; }
+}
+</style>
+
+<style>
+/* V13 — clean vertical scroll reveal: no blur, no sideways stagger */
+.dest-card {
+    opacity: 0 !important;
+    transform: translate3d(0, 54px, 0) !important;
+    will-change: transform, opacity;
+    transition:
+        opacity .95s cubic-bezier(.22, 1, .36, 1),
+        transform 1.02s cubic-bezier(.16, 1, .3, 1),
+        box-shadow .28s ease,
+        border-color .28s ease !important;
+}
+.dest-card.visible {
+    opacity: 1 !important;
+    transform: translate3d(0, 0, 0) !important;
+}
+.dest-card.visible:hover {
+    transform: translate3d(0, -5px, 0) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+    .dest-card, .dest-card.visible {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: box-shadow .2s ease, border-color .2s ease !important;
+    }
+}
+</style>
+
+<section class="dest-page">
+    <section class="dest-hero">
+        <div class="dest-hero-copy">
+            <span class="eyebrow">✦ EXPLORE DESTINATIONS</span>
+            <h1>Куда отправимся дальше?</h1>
+            <p>Выберите город, откройте интерактивный travel guide, соберите мини-маршрут и сразу посмотрите доступные рейсы.</p>
+        </div>
+    </section>
+
+    <div class="dest-toolbar">
+        <input id="destination-filter" class="dest-search" type="search" placeholder="Поиск по городу, стране или IATA-коду…" autocomplete="off">
+        <div class="dest-count"><span id="destination-visible-count">{{ destinations|length }}</span>&nbsp;направлений</div>
+    </div>
+
+    <div class="dest-grid" id="destination-grid">
+        {% for destination in destinations %}
+        <article class="dest-card"
+                 tabindex="0"
+                 role="link"
+                 aria-label="Открыть гайд: {{ destination.city }}"
+                 data-detail-url="{{ url_for('destination_detail', iata_code=destination.iata_code) }}"
+                 data-search="{{ destination.city|lower }} {{ destination.country|lower }} {{ destination.iata_code|lower }}">
+            <div class="dest-photo-wrap">
+                <img class="dest-photo city-photo"
+                     data-city="{{ destination.city }}"
+                     data-country="{{ destination.country }}"
+                     data-iata="{{ destination.iata_code }}"
+                     alt="{{ destination.city }}, {{ destination.country }}"
+                     loading="lazy">
+                <div class="dest-shade"></div>
+                <span class="dest-iata">{{ destination.iata_code }}</span>
+                <span class="dest-weather" data-weather
+                      data-city="{{ destination.city }}" data-country="{{ destination.country }}"
+                      data-iata="{{ destination.iata_code }}" hidden>
+                    <span class="weather-icon">☀</span><span class="weather-temp">--°</span>
+                </span>
+                <span class="dest-hover-label">Открыть гайд →</span>
+                <div class="dest-photo-title">
+                    <h2>{{ destination.city }}</h2>
+                    <p>{{ destination.country }}</p>
+                </div>
+            </div>
+
+            <div class="dest-body">
+                <p class="dest-description">{{ destination.description }}</p>
+
+                <div class="dest-tags">
+                    {% for highlight in destination.highlights %}
+                        <span class="dest-tag">{{ highlight }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="dest-stats">
+                    <div class="dest-stat"><small>Будущих рейсов</small><strong>{{ destination.future_flights }}</strong></div>
+                    <div class="dest-stat"><small>Цена от</small><strong>{% if destination.min_price %}{{ "{:,.0f}".format(destination.min_price).replace(",", " ") }} ₸{% else %}—{% endif %}</strong></div>
+                </div>
+
+                <div class="dest-actions">
+                    <a class="dest-guide-btn" href="{{ url_for('destination_detail', iata_code=destination.iata_code) }}">Открыть гайд</a>
+                    <a class="dest-flight-btn" href="{{ url_for('home', destination_id=destination.airport_id) }}">Найти рейс →</a>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+
+        <div class="dest-empty" id="destination-empty">
+            <h2>Ничего не найдено</h2>
+            <p>Попробуйте другое название города, страны или IATA-код.</p>
+        </div>
+    </div>
+</section>
+
+<script>
+async function wikipediaImage(city, country) {
+    const titles = [city + ', ' + country, city];
+    for (const title of titles) {
+        try {
+            const api = 'https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=1200&titles=' + encodeURIComponent(title);
+            const response = await fetch(api);
+            if (!response.ok) continue;
+            const data = await response.json();
+            const page = Object.values(data.query?.pages || {})[0];
+            if (page?.thumbnail?.source) return page.thumbnail.source;
+        } catch (error) {
+            console.debug('City image unavailable', error);
+        }
+    }
+    return null;
+}
+
+function fallbackImage(iata) {
+    return 'https://picsum.photos/seed/' + encodeURIComponent('travel-' + iata) + '/1200/800';
+}
+
+async function loadCityPhoto(image) {
+    const source = await wikipediaImage(image.dataset.city, image.dataset.country);
+    image.src = source || fallbackImage(image.dataset.iata);
+    image.onload = () => image.classList.add('loaded');
+    image.onerror = () => {
+        image.onerror = null;
+        image.src = fallbackImage(image.dataset.iata);
+        image.classList.add('loaded');
+    };
+}
+
+
+const WEATHER_CACHE_MS = 30 * 60 * 1000;
+
+function weatherEmoji(code, isDay) {
+    if (code === 0) return isDay ? '☀' : '☾';
+    if (code <= 3) return '⛅';
+    if ([45, 48].includes(code)) return '🌫';
+    if (code >= 51 && code <= 67) return '🌧';
+    if (code >= 71 && code <= 77) return '❄';
+    if (code >= 80 && code <= 82) return '🌦';
+    if (code >= 85 && code <= 86) return '🌨';
+    if (code >= 95) return '⛈';
+    return '◌';
+}
+
+async function fetchCurrentWeather(element) {
+    const cacheKey = `airline-weather-v1-${element.dataset.iata}`;
+    try {
+        const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+        if (cached && Date.now() - cached.savedAt < WEATHER_CACHE_MS) {
+            paintWeather(element, cached);
+            return;
+        }
+    } catch (_) {}
+
+    try {
+        const place = `${element.dataset.city}, ${element.dataset.country}`;
+        const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(place)}&count=1&language=ru&format=json`);
+        if (!geoResponse.ok) throw new Error('geocoding failed');
+        const geo = await geoResponse.json();
+        const location = geo.results?.[0];
+        if (!location) throw new Error('location not found');
+
+        const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,weather_code,is_day&timezone=auto`);
+        if (!weatherResponse.ok) throw new Error('weather failed');
+        const weather = await weatherResponse.json();
+        const data = {
+            temperature: Math.round(Number(weather.current?.temperature_2m)),
+            code: Number(weather.current?.weather_code ?? -1),
+            isDay: Number(weather.current?.is_day ?? 1),
+            savedAt: Date.now()
+        };
+        try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch (_) {}
+        paintWeather(element, data);
+    } catch (error) {
+        console.debug('Weather unavailable', error);
+    }
+}
+
+function paintWeather(element, data) {
+    if (!Number.isFinite(data.temperature)) return;
+    element.querySelector('.weather-icon').textContent = weatherEmoji(data.code, data.isDay);
+    element.querySelector('.weather-temp').textContent = `${data.temperature}°`;
+    element.hidden = false;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const cards = Array.from(document.querySelectorAll('.dest-card'));
+    const filter = document.getElementById('destination-filter');
+    const count = document.getElementById('destination-visible-count');
+    const empty = document.getElementById('destination-empty');
+
+
+    const weatherObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            weatherObserver.unobserve(entry.target);
+            fetchCurrentWeather(entry.target);
+        });
+    }, {rootMargin: '260px 0px'});
+    document.querySelectorAll('[data-weather]').forEach((badge) => weatherObserver.observe(badge));
+
+    document.querySelectorAll('.city-photo').forEach(loadCityPhoto);
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+        });
+    }, {
+        threshold: .18,
+        rootMargin: '0px 0px -8% 0px'
+    });
+
+    cards.forEach((card) => {
+        // Each card rises vertically as it reaches the viewport.
+        // No column-based delay: scrolling direction controls the rhythm.
+        observer.observe(card);
+
+        card.addEventListener('click', (event) => {
+            if (event.target.closest('a, button, form')) return;
+            window.location.href = card.dataset.detailUrl;
+        });
+        card.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                if (event.target.closest('a, button')) return;
+                event.preventDefault();
+                window.location.href = card.dataset.detailUrl;
+            }
+        });
+    });
+
+    filter.addEventListener('input', () => {
+        const query = filter.value.trim().toLowerCase();
+        let visible = 0;
+        cards.forEach((card) => {
+            const match = card.dataset.search.includes(query);
+            card.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+        count.textContent = visible;
+        empty.style.display = visible === 0 ? 'block' : 'none';
+    });
+});
+</script>
+{% endblock %}

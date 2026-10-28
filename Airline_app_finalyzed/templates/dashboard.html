@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="admin-page-head dashboard-head">
+    <div>
+        <span class="eyebrow admin-eyebrow">CONTROL CENTER</span>
+        <h1>Админ-панель</h1>
+        <p>Продажи, загрузка рейсов, популярные маршруты и последние операции.</p>
+    </div>
+    <div class="quick-actions">
+        <a class="secondary-button" href="{{ url_for('flights') }}">Рейсы</a>
+        <a class="secondary-button" href="{{ url_for('passengers') }}">Пассажиры</a>
+        <a class="secondary-button" href="{{ url_for('bookings') }}">Брони</a>
+        <a class="button" href="{{ url_for('create_flight') }}">+ Новый рейс</a>
+    </div>
+</section>
+
+<div class="metric-grid">
+    <article class="metric-card metric-card-featured">
+        <span>Оборот по билетам</span>
+        <strong>{{ "{:,.0f}".format(stats.revenue or 0).replace(",", " ") }} ₸</strong>
+        <small>Issued / Used tickets, без Cancelled</small>
+    </article>
+    <article class="metric-card"><span>Средняя загрузка</span><strong>{{ stats.average_load or 0 }}%</strong><small>будущие Scheduled / Boarding</small></article>
+    <article class="metric-card"><span>Подтверждённые брони</span><strong>{{ stats.confirmed_bookings }}</strong><small>активные записи</small></article>
+    <article class="metric-card"><span>Будущие рейсы</span><strong>{{ stats.upcoming_flights }}</strong><small>доступны для продажи</small></article>
+    <article class="metric-card"><span>Пассажиры</span><strong>{{ stats.passengers }}</strong><small>в базе данных</small></article>
+    <article class="metric-card"><span>Билеты</span><strong>{{ stats.tickets }}</strong><small>всего записей ticket</small></article>
+</div>
+
+<section class="analytics-grid">
+    <article class="analytics-card analytics-card-wide">
+        <div class="analytics-card-head">
+            <div>
+                <span class="eyebrow admin-eyebrow">14 DAYS</span>
+                <h2>Динамика бронирований</h2>
+            </div>
+            <span class="analytics-hint">COUNT(booking_id) по дням</span>
+        </div>
+        <canvas id="booking-trend-chart" class="analytics-canvas" aria-label="График бронирований за 14 дней"></canvas>
+    </article>
+
+    <article class="analytics-card">
+        <div class="analytics-card-head">
+            <div>
+                <span class="eyebrow admin-eyebrow">TOP ROUTES</span>
+                <h2>Популярные маршруты</h2>
+            </div>
+        </div>
+        <canvas id="route-chart" class="analytics-canvas compact" aria-label="Популярные маршруты"></canvas>
+        <div class="route-revenue-list">
+            {% for route in analytics.routes %}
+            <div><span>{{ route.label }}</span><strong>{{ "{:,.0f}".format(route.revenue).replace(",", " ") }} ₸</strong></div>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="analytics-card">
+        <div class="analytics-card-head">
+            <div>
+                <span class="eyebrow admin-eyebrow">STATUS MIX</span>
+                <h2>Статусы бронирований</h2>
+            </div>
+        </div>
+        {% set status_total = analytics.statuses | sum(attribute='value') %}
+        <div class="status-stack" aria-label="Распределение статусов">
+            {% for item in analytics.statuses %}
+                {% set share = (item.value * 100 / status_total) if status_total else 0 %}
+                <span class="status-segment status-segment-{{ item.label|lower }}" style="width: {{ share }}%" title="{{ item.label }}: {{ item.value }}"></span>
+            {% endfor %}
+        </div>
+        <div class="status-breakdown">
+            {% for item in analytics.statuses %}
+            <div>
+                <span class="status-dot status-dot-{{ item.label|lower }}"></span>
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+            </div>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="analytics-card analytics-card-wide">
+        <div class="analytics-card-head">
+            <div>
+                <span class="eyebrow admin-eyebrow">LOAD FACTOR</span>
+                <h2>Загрузка ближайших рейсов</h2>
+            </div>
+            <a href="{{ url_for('flights') }}">Управлять рейсами →</a>
+        </div>
+        {% if analytics.occupancy %}
+        <div class="occupancy-list">
+            {% for flight in analytics.occupancy %}
+            <div class="occupancy-row">
+                <div class="occupancy-label">
+                    <strong>{{ flight.flight_number }} · {{ flight.route }}</strong>
+                    <span>{{ flight.departure }} · {{ flight.booked }}/{{ flight.total }} мест</span>
+                </div>
+                <div class="occupancy-track"><i style="width: {{ flight.percent }}%"></i></div>
+                <strong class="occupancy-percent">{{ flight.percent }}%</strong>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <div class="admin-empty">Нет ближайших рейсов для расчёта загрузки.</div>
+        {% endif %}
+    </article>
+</section>
+
+<section class="dashboard-panel dashboard-recent-panel">
+    <div class="dashboard-panel-head">
+        <div>
+            <span class="eyebrow admin-eyebrow">LIVE DATA</span>
+            <h2>Последние бронирования</h2>
+        </div>
+        <a href="{{ url_for('bookings') }}">Открыть все →</a>
+    </div>
+
+    {% if recent_bookings %}
+    <div class="recent-bookings-list">
+        {% for booking in recent_bookings %}
+        <article class="recent-booking-item">
+            <div>
+                <strong>{{ booking.booking_reference }}</strong>
+                <span>{{ booking.first_name }} {{ booking.last_name }}</span>
+            </div>
+            <div class="recent-route">
+                {% if booking.origin %}
+                    {{ booking.origin }} → {{ booking.destination }}
+                    <small>{{ booking.flight_number }}</small>
+                {% else %}
+                    <span>Без билета</span>
+                {% endif %}
+            </div>
+            <div class="recent-price">
+                {% if booking.price is not none %}
+                    {{ "{:,.0f}".format(booking.price).replace(",", " ") }} ₸
+                {% else %}—{% endif %}
+                <small>{{ booking.status }}</small>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+        <div class="admin-empty">Бронирований пока нет.</div>
+    {% endif %}
+</section>
+
+<script>
+const analytics = {{ analytics | tojson }};
+
+function prepareCanvas(canvas, height) {
+    const width = Math.max(canvas.clientWidth, 320);
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+    ctx.font = '12px Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+    return {ctx, width, height};
+}
+
+function drawTrend() {
+    const canvas = document.getElementById('booking-trend-chart');
+    const {ctx, width, height} = prepareCanvas(canvas, 250);
+    const values = analytics.trend.map((item) => Number(item.value));
+    const labels = analytics.trend.map((item) => item.label);
+    const max = Math.max(1, ...values);
+    const pad = {left: 34, right: 18, top: 20, bottom: 36};
+    const chartW = width - pad.left - pad.right;
+    const chartH = height - pad.top - pad.bottom;
+
+    ctx.strokeStyle = '#dce6ec';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = pad.top + chartH * i / 4;
+        ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(width - pad.right, y); ctx.stroke();
+    }
+
+    if (!values.length) return;
+    const points = values.map((value, index) => ({
+        x: pad.left + (values.length === 1 ? chartW / 2 : chartW * index / (values.length - 1)),
+        y: pad.top + chartH - (value / max) * chartH
+    }));
+
+    const gradient = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
+    gradient.addColorStop(0, 'rgba(15,141,175,.25)');
+    gradient.addColorStop(1, 'rgba(15,141,175,0)');
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, pad.top + chartH);
+    points.forEach((point) => ctx.lineTo(point.x, point.y));
+    ctx.lineTo(points[points.length - 1].x, pad.top + chartH);
+    ctx.closePath(); ctx.fillStyle = gradient; ctx.fill();
+
+    ctx.beginPath();
+    points.forEach((point, index) => index === 0 ? ctx.moveTo(point.x, point.y) : ctx.lineTo(point.x, point.y));
+    ctx.strokeStyle = '#0f8daf'; ctx.lineWidth = 3; ctx.stroke();
+
+    points.forEach((point, index) => {
+        ctx.beginPath(); ctx.arc(point.x, point.y, 4, 0, Math.PI * 2); ctx.fillStyle = '#0f8daf'; ctx.fill();
+        if (index % 2 === 0 || labels.length <= 8) {
+            ctx.fillStyle = '#738295'; ctx.textAlign = 'center';
+            ctx.fillText(labels[index], point.x, height - 10);
+        }
+    });
+}
+
+function drawRoutes() {
+    const canvas = document.getElementById('route-chart');
+    const {ctx, width, height} = prepareCanvas(canvas, 220);
+    const rows = analytics.routes;
+    if (!rows.length) {
+        ctx.fillStyle = '#64748b'; ctx.fillText('Пока недостаточно данных', 14, 28); return;
+    }
+    const max = Math.max(1, ...rows.map((row) => Number(row.bookings)));
+    const labelW = 78;
+    const right = 28;
+    const barW = width - labelW - right;
+    const rowH = Math.min(34, (height - 10) / rows.length);
+
+    rows.forEach((row, index) => {
+        const y = 10 + index * rowH;
+        const valueW = barW * Number(row.bookings) / max;
+        ctx.fillStyle = '#5d6f82'; ctx.textAlign = 'left';
+        ctx.fillText(row.label, 0, y + 18);
+        ctx.fillStyle = '#e8f1f5'; ctx.fillRect(labelW, y + 5, barW, 16);
+        ctx.fillStyle = '#0f8daf'; ctx.fillRect(labelW, y + 5, valueW, 16);
+        ctx.fillStyle = '#172033'; ctx.textAlign = 'right';
+        ctx.fillText(String(row.bookings), width - 2, y + 18);
+    });
+}
+
+let resizeTimer;
+function renderCharts() {
+    drawTrend();
+    drawRoutes();
+}
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(renderCharts, 120);
+});
+renderCharts();
+</script>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+
+<div class="page-header">
+
+    <h1>
+        Add Passenger
+    </h1>
+
+
+    <a
+        class="secondary-button"
+        href="{{ url_for('passengers') }}"
+    >
+
+        Back to Passengers
+
+    </a>
+
+</div>
+
+
+{% if error %}
+
+
+<div class="error">
+
+    {{ error }}
+
+</div>
+
+
+{% endif %}
+
+
+<form
+    method="POST"
+    class="form-card"
+>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+
+    <label>
+        First Name
+    </label>
+
+    <input
+        type="text"
+        name="first_name"
+        placeholder="Ayan"
+        required
+    >
+
+
+    <label>
+        Last Name
+    </label>
+
+    <input
+        type="text"
+        name="last_name"
+        placeholder="Serikov"
+        required
+    >
+
+
+    <label>
+        Date of Birth
+    </label>
+
+    <input
+        type="date"
+        name="date_of_birth"
+        required
+    >
+
+
+    <label>
+        Email
+    </label>
+
+    <input
+        type="email"
+        name="email"
+        placeholder="example@email.com"
+    >
+
+
+    <label>
+        Phone
+    </label>
+
+    <input
+        type="text"
+        name="phone"
+        placeholder="+77001234567"
+    >
+
+
+    <label>
+        Passport Number
+    </label>
+
+    <input
+        type="text"
+        name="passport_number"
+        placeholder="KZ12345678"
+        required
+    >
+
+
+    <label>
+        Loyalty Number
+    </label>
+
+    <input
+        type="text"
+        name="loyalty_number"
+        placeholder="LOY12345"
+    >
+
+
+    <button
+        type="submit"
+        class="submit-button"
+    >
+
+        Add Passenger
+
+    </button>
+
+
+</form>
+
+
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="manage-page">
+    {% if not booking %}
+    <div class="manage-hero">
+        <div class="manage-copy">
+            <span class="eyebrow">MANAGE YOUR TRIP</span>
+            <h1>Найдите своё бронирование</h1>
+            <p>Введите номер брони и фамилию пассажира. Здесь можно посмотреть билет, место, статус рейса и при необходимости отменить будущую поездку.</p>
+        </div>
+
+        <form method="post" class="manage-search-card">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+            <label for="booking_reference">Номер брони</label>
+            <input id="booking_reference" name="booking_reference" maxlength="20"
+                   placeholder="Например BK8A31F2C4" autocomplete="off" required>
+
+            <label for="last_name">Фамилия пассажира</label>
+            <input id="last_name" name="last_name" maxlength="50"
+                   placeholder="Например Serikov" autocomplete="family-name" required>
+
+            <button class="submit-button" type="submit">Открыть бронирование →</button>
+            <small>Номер брони указан на странице подтверждения после покупки.</small>
+        </form>
+    </div>
+    {% else %}
+    <div class="manage-result-head">
+        <div>
+            <a class="detail-back" href="{{ url_for('manage_booking', new=1) }}">← Другое бронирование</a>
+            <span class="eyebrow admin-eyebrow">BOOKING {{ booking.booking_reference }}</span>
+            <h1>{{ booking.origin_city or '—' }} → {{ booking.destination_city or '—' }}</h1>
+            {% if booking.departure_time %}
+                <p>{{ booking.flight_number }} · {{ booking.departure_time.strftime('%d.%m.%Y · %H:%M') }}</p>
+            {% endif %}
+        </div>
+        <span class="booking-status-large status-{{ booking.booking_status|lower }}">{{ booking.booking_status }}</span>
+    </div>
+
+    <div class="manage-layout">
+        <section class="ticket-card-pro">
+            <div class="ticket-topline">
+                <div>
+                    <span>AIRLINE BOOKING SYSTEM</span>
+                    <strong>{{ booking.ticket_number or 'BOOKING ONLY' }}</strong>
+                </div>
+                <div class="ticket-reference">
+                    <small>Booking reference</small>
+                    <strong>{{ booking.booking_reference }}</strong>
+                </div>
+            </div>
+
+            <div class="ticket-route-pro">
+                <div>
+                    <small>FROM</small>
+                    <strong>{{ booking.origin_code or '—' }}</strong>
+                    <span>{{ booking.origin_city or '—' }}</span>
+                </div>
+                <div class="ticket-flight-line">
+                    <span>✈</span>
+                    <small>{{ booking.flight_number or '—' }}</small>
+                </div>
+                <div>
+                    <small>TO</small>
+                    <strong>{{ booking.destination_code or '—' }}</strong>
+                    <span>{{ booking.destination_city or '—' }}</span>
+                </div>
+            </div>
+
+            <div class="ticket-detail-grid">
+                <div><small>Пассажир</small><strong>{{ booking.first_name }} {{ booking.last_name }}</strong></div>
+                <div><small>Вылет</small><strong>{% if booking.departure_time %}{{ booking.departure_time.strftime('%d.%m.%Y %H:%M') }}{% else %}—{% endif %}</strong></div>
+                <div><small>Прилёт</small><strong>{% if booking.arrival_time %}{{ booking.arrival_time.strftime('%d.%m.%Y %H:%M') }}{% else %}—{% endif %}</strong></div>
+                <div><small>Место</small><strong>{{ booking.seat_number or '—' }}{% if booking.seat_class %} · {{ booking.seat_class }}{% endif %}</strong></div>
+                <div><small>Стоимость</small><strong>{% if booking.price is not none %}{{ "{:,.0f}".format(booking.price).replace(",", " ") }} ₸{% else %}—{% endif %}</strong></div>
+                <div><small>Статус билета</small><strong>{{ booking.ticket_status or '—' }}</strong></div>
+            </div>
+        </section>
+
+        <aside class="manage-side-card">
+            <span class="eyebrow admin-eyebrow">TRIP CONTROL</span>
+            <h2>Управление поездкой</h2>
+            <div class="manage-meta-row"><span>Рейс</span><strong>{{ booking.flight_status or '—' }}</strong></div>
+            <div class="manage-meta-row"><span>Бронь создана</span><strong>{{ booking.booked_at.strftime('%d.%m.%Y') }}</strong></div>
+            <div class="manage-meta-row"><span>Паспорт</span><strong>{{ booking.passport_number }}</strong></div>
+
+            {% if booking.booking_status == 'Cancelled' %}
+                <div class="manage-cancelled-note">Бронирование отменено. Место больше не закреплено за этим билетом.</div>
+            {% elif booking.can_cancel %}
+                <form method="post" action="{{ url_for('cancel_public_booking') }}"
+                      onsubmit="return confirm('Точно отменить бронирование {{ booking.booking_reference }}?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="danger-button manage-cancel-button">Отменить бронирование</button>
+                </form>
+                <small class="manage-warning">Учебный проект: если в базе есть Completed payment, он будет помечен как Refunded.</small>
+            {% else %}
+                <div class="manage-cancelled-note neutral">Для этого рейса онлайн-отмена уже недоступна.</div>
+            {% endif %}
+        </aside>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

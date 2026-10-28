@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+.detail-page{max-width:1320px;margin:0 auto;padding-bottom:70px}.detail-back{display:inline-flex;align-items:center;gap:8px;margin:2px 0 18px;color:#416178;text-decoration:none;font-weight:700}.detail-back:hover{color:#0f8daf}.detail-hero{position:relative;min-height:610px;border-radius:34px;overflow:hidden;background:linear-gradient(135deg,#07172d,#115f82);box-shadow:0 28px 80px rgba(15,23,42,.2);isolation:isolate}.detail-hero-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.08);transition:opacity .7s ease;animation:slowZoom 18s ease-in-out infinite alternate}.detail-hero-image.loaded{opacity:.94}@keyframes slowZoom{to{transform:scale(1.17) translate(-1.5%,1%)}}.detail-hero-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(2,12,28,.92) 0%,rgba(2,12,28,.65) 46%,rgba(2,12,28,.18) 75%),linear-gradient(to top,rgba(2,12,28,.66),transparent 48%);z-index:1}.detail-hero-content{position:relative;z-index:2;min-height:610px;padding:clamp(34px,6vw,74px);display:flex;flex-direction:column;justify-content:flex-end;max-width:800px;color:#fff}.detail-kicker{display:flex;align-items:center;gap:12px;font-size:13px;font-weight:900;letter-spacing:.14em;color:#7ce8f6}.detail-kicker:before{content:"";width:34px;height:1px;background:#7ce8f6}.detail-title{margin:18px 0 18px;font-size:clamp(52px,7vw,92px);line-height:.9;letter-spacing:-.055em;color:#fff!important;text-shadow:0 3px 24px rgba(0,0,0,.38)}.detail-description{max-width:690px;margin:0;color:rgba(255,255,255,.9);font-size:18px;line-height:1.67}.detail-hero-tags{display:flex;flex-wrap:wrap;gap:9px;margin-top:26px}.detail-hero-tag{padding:9px 13px;border:1px solid rgba(255,255,255,.22);border-radius:999px;background:rgba(255,255,255,.1);backdrop-filter:blur(10px);font-size:12px;font-weight:800}.detail-stats{position:absolute;z-index:3;right:28px;bottom:28px;display:grid;grid-template-columns:repeat(3,minmax(118px,132px));gap:10px;width:max-content;max-width:calc(100% - 56px)}.detail-stat{min-width:0;padding:16px 16px;border:1px solid rgba(255,255,255,.2);border-radius:18px;background:rgba(4,20,39,.58);backdrop-filter:blur(15px);color:#fff}.detail-stat small{display:block;margin-bottom:6px;color:rgba(255,255,255,.62);font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800}.detail-stat strong{font-size:17px;white-space:nowrap}.detail-layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(300px,.7fr);gap:28px;margin-top:30px}.detail-main{display:grid;gap:26px}.guide-section{padding:32px;border:1px solid #e5eaf0;border-radius:25px;background:#fff;box-shadow:0 12px 34px rgba(15,23,42,.055)}.guide-section h2{margin:0 0 9px;font-size:30px;letter-spacing:-.03em}.guide-sub{margin:0 0 25px;color:#697586;line-height:1.65}.section-badge{display:inline-flex;margin-bottom:13px;padding:7px 10px;border-radius:999px;background:#e7f8fc;color:#08708d;font-size:11px;font-weight:900;letter-spacing:.08em}.highlight-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.highlight-card{padding:20px;border-radius:18px;background:linear-gradient(145deg,#f5fafc,#eef7fa);border:1px solid #deedf2}.highlight-number{display:grid;place-items:center;width:34px;height:34px;margin-bottom:18px;border-radius:11px;background:#0f8daf;color:#fff;font-weight:900}.highlight-card strong{font-size:16px}.timeline{display:grid;gap:0}.timeline-item{position:relative;display:grid;grid-template-columns:85px 1fr;gap:22px;padding:6px 0 28px}.timeline-item:not(:last-child):before{content:"";position:absolute;left:42px;top:34px;bottom:-2px;width:1px;background:#d8e5eb}.timeline-time{font-size:12px;font-weight:900;color:#0f8daf;text-transform:uppercase;letter-spacing:.08em}.timeline-copy{padding:0 0 4px}.timeline-copy h3{margin:0 0 7px;font-size:18px}.timeline-copy p{margin:0;color:#697586;line-height:1.6}.planner-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}.planner-button{border:1px solid #d5e2e8;background:#fff;color:#31536a;border-radius:12px;padding:10px 14px;font:inherit;font-weight:800;cursor:pointer}.planner-button.active{background:#0f8daf;color:#fff;border-color:#0f8daf}.planner-output{display:grid;gap:10px}.planner-day{padding:17px 18px;border-radius:15px;background:#f7fafc;border:1px solid #e5edf1;animation:plannerIn .28s ease both}@keyframes plannerIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.planner-day strong{display:block;margin-bottom:6px}.planner-day span{color:#667586;line-height:1.5}.flight-list{display:grid;gap:12px}.next-flight{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:16px;padding:17px;border:1px solid #e5ebf1;border-radius:16px}.next-flight-route strong{font-size:17px}.next-flight-route span,.next-flight-meta small{display:block;color:#697586;margin-top:4px}.next-flight-meta{text-align:right}.next-flight-price{text-align:right}.next-flight-price strong{display:block;font-size:18px}.next-flight-price a{display:inline-flex;margin-top:7px;color:#0f8daf;font-size:12px;font-weight:900;text-decoration:none}.tips-list{display:grid;gap:12px}.tip-item{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:14px;background:#f7fafc}.tip-icon{display:grid;place-items:center;flex:0 0 auto;width:31px;height:31px;border-radius:10px;background:#dff4f8;color:#0f7895;font-weight:900}.tip-item p{margin:3px 0 0;color:#5f6f7d;line-height:1.55}.detail-sidebar{position:relative}.booking-box{position:sticky;top:24px;padding:25px;border-radius:24px;background:#0e2238;color:#fff;box-shadow:0 20px 50px rgba(15,23,42,.16)}.booking-box .eyebrow{color:#6ee7f9}.booking-box h3{margin:12px 0 8px;font-size:27px}.booking-box p{margin:0;color:#b8c8d8;line-height:1.6}.booking-price{margin:24px 0;padding:18px 0;border-top:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12)}.booking-price small{display:block;color:#8ea7bb}.booking-price strong{display:block;margin-top:5px;font-size:31px}.booking-actions{display:grid;gap:10px}.booking-primary,.booking-secondary{min-height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;text-decoration:none;font-weight:900}.booking-primary{background:#22c1dc;color:#062033}.booking-primary:hover{background:#65dced}.booking-secondary{border:1px solid rgba(255,255,255,.2);color:#fff}.booking-secondary:hover{background:rgba(255,255,255,.07)}.booking-note{display:block;margin-top:14px;color:#7f9aae;font-size:11px;line-height:1.5}.reveal{opacity:0;transform:translateY(24px);transition:opacity .58s ease,transform .58s cubic-bezier(.2,.8,.2,1)}.reveal.visible{opacity:1;transform:none}@media(max-width:1000px){.detail-layout{grid-template-columns:1fr}.booking-box{position:relative;top:auto}.detail-stats{right:22px;bottom:22px;grid-template-columns:repeat(3,minmax(108px,126px));max-width:calc(100% - 44px)}.detail-hero{padding-bottom:0}.highlight-grid{grid-template-columns:1fr 1fr}.next-flight{grid-template-columns:1fr auto}}@media(max-width:700px){.detail-hero,.detail-hero-content{min-height:560px}.detail-hero{padding-bottom:0}.detail-title{font-size:58px}.detail-stats{position:relative;right:auto;bottom:auto;margin:14px 18px 0;grid-template-columns:repeat(3,1fr);width:auto;max-width:none}.detail-stat{padding:12px;background:rgba(4,20,39,.78);color:#fff;border-color:rgba(255,255,255,.16)}.detail-stat small{color:rgba(255,255,255,.62);font-size:9px}.detail-stat strong{font-size:14px}.detail-layout{margin-top:18px}.guide-section{padding:23px}.highlight-grid{grid-template-columns:1fr}.next-flight{grid-template-columns:1fr}.next-flight-meta,.next-flight-price{text-align:left}.timeline-item{grid-template-columns:67px 1fr}.timeline-item:not(:last-child):before{left:33px}}@media(prefers-reduced-motion:reduce){.detail-hero-image{animation:none}.reveal{opacity:1;transform:none;transition:none}}
+</style>
+
+<style>
+/* LIVE DESTINATION STORY v7 — keep the changing visual visible while reading */
+.detail-sidebar {
+    /* Important: the sidebar must stretch to the full height of the grid row.
+       Otherwise sticky has no scroll range and the story simply scrolls away. */
+    align-self: stretch !important;
+    position: relative !important;
+    min-height: 100% !important;
+}
+.detail-sidebar-stack {
+    position: sticky !important;
+    top: 96px !important;
+    display: grid !important;
+    gap: 16px !important;
+    align-self: start;
+    width: 100%;
+}
+.detail-story-visual {
+    order: 0;
+    height: 260px !important;
+    margin: 0 !important;
+}
+.detail-sidebar-stack .booking-box {
+    order: 1;
+    position: relative !important;
+    top: auto !important;
+}
+@media (max-width: 1000px) {
+    .detail-sidebar {
+        min-height: 0 !important;
+    }
+    .detail-sidebar-stack {
+        position: relative !important;
+        top: auto !important;
+    }
+    .detail-story-visual {
+        height: 300px !important;
+    }
+}
+@media (max-width: 700px) {
+    .detail-story-visual {
+        height: 230px !important;
+    }
+}
+</style>
+
+<div class="detail-page">
+    <a class="detail-back" href="{{ url_for('destinations') }}">← Все направления</a>
+
+    <section class="detail-hero">
+        <img id="detail-city-photo" class="detail-hero-image"
+             data-city="{{ airport.city }}" data-country="{{ airport.country }}" data-iata="{{ airport.iata_code }}"
+             alt="{{ airport.city }}, {{ airport.country }}">
+        <div class="detail-hero-overlay"></div>
+        <div class="detail-hero-content">
+            <div class="detail-kicker-row">
+                <span class="detail-kicker">{{ airport.iata_code }} · {{ airport.country }}</span>
+                <span class="detail-weather" id="detail-weather" data-city="{{ airport.city }}" data-country="{{ airport.country }}" data-iata="{{ airport.iata_code }}" hidden>
+                    <span class="weather-icon">☀</span><span class="weather-temp">--°</span><small>сейчас</small>
+                </span>
+            </div>
+            <h1 class="detail-title">{{ airport.city }}</h1>
+            <p class="detail-description" id="animated-description">{{ guide.description }}</p>
+            <div class="detail-hero-tags">
+                {% for item in guide.highlights %}<span class="detail-hero-tag">{{ item }}</span>{% endfor %}
+            </div>
+        </div>
+
+        <div class="detail-stats">
+            <div class="detail-stat"><small>Рейсов впереди</small><strong>{{ stats.future_flights or 0 }}</strong></div>
+            <div class="detail-stat"><small>Городов вылета</small><strong>{{ stats.origin_count or 0 }}</strong></div>
+            <div class="detail-stat"><small>Цена от</small><strong>{% if stats.min_price %}{{ "{:,.0f}".format(stats.min_price).replace(",", " ") }} ₸{% else %}—{% endif %}</strong></div>
+        </div>
+    </section>
+
+    <div class="detail-layout">
+        <div class="detail-main">
+            <section class="guide-section reveal" data-story="landmarks">
+                <span class="section-badge">ТОП ВПЕЧАТЛЕНИЙ</span>
+                <h2>Зачем ехать в {{ airport.city }}</h2>
+                <p class="guide-sub">Три ориентира, вокруг которых удобно собрать первую поездку.</p>
+                <div class="highlight-grid">
+                    {% for item in guide.highlights %}
+                    <article class="highlight-card">
+                        <span class="highlight-number">0{{ loop.index }}</span>
+                        <strong>{{ item }}</strong>
+                    </article>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="guide-section reveal" data-story="streets">
+                <span class="section-badge">LOCAL GUIDE</span>
+                <h2>Маршрут на первый день</h2>
+                <p class="guide-sub">Не жёсткое расписание, а удобный каркас, который можно адаптировать под себя.</p>
+                <div class="timeline">
+                    {% for item in guide.itinerary %}
+                    <div class="timeline-item">
+                        <div class="timeline-time">{{ item.time }}</div>
+                        <div class="timeline-copy"><h3>{{ item.title }}</h3><p>{{ item.text }}</p></div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="guide-section reveal" data-story="culture">
+                <span class="section-badge">SMART TRIP PLANNER</span>
+                <h2>Соберите поездку под количество дней</h2>
+                <p class="guide-sub">Небольшая интерактивная фича: план перестраивается прямо на странице.</p>
+                <div class="planner-controls">
+                    <button class="planner-button active" type="button" data-days="1">1 день</button>
+                    <button class="planner-button" type="button" data-days="2">2 дня</button>
+                    <button class="planner-button" type="button" data-days="3">3 дня</button>
+                </div>
+                <div class="planner-output" id="planner-output"></div>
+            </section>
+
+            <section class="guide-section reveal" data-story="airport">
+                <span class="section-badge">LIVE FROM DATABASE</span>
+                <h2>Ближайшие рейсы в {{ airport.city }}</h2>
+                <p class="guide-sub">Список строится из реальных записей flight/route/seat в вашей PostgreSQL-базе.</p>
+                {% if next_flights %}
+                <div class="flight-list">
+                    {% for flight in next_flights %}
+                    <article class="next-flight">
+                        <div class="next-flight-route">
+                            <strong>{{ flight.origin_city }} ({{ flight.origin_code }}) → {{ airport.city }}</strong>
+                            <span>{{ flight.flight_number }} · {{ flight.model }}</span>
+                        </div>
+                        <div class="next-flight-meta">
+                            <strong>{{ flight.departure_time.strftime('%d.%m · %H:%M') }}</strong>
+                            <small>{{ flight.available_count }} свободных мест</small>
+                        </div>
+                        <div class="next-flight-price">
+                            {% if flight.min_price is not none %}<strong>{{ "{:,.0f}".format(flight.min_price).replace(",", " ") }} ₸</strong>{% endif %}
+                            <a href="{{ url_for('book_flight', flight_id=flight.flight_id) }}">Выбрать место →</a>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% else %}
+                    <div class="admin-empty">Пока нет будущих рейсов с доступными местами.</div>
+                {% endif %}
+            </section>
+
+            <section class="guide-section reveal" data-story="evening">
+                <span class="section-badge">BEFORE YOU GO</span>
+                <h2>Перед поездкой</h2>
+                <div class="tips-list">
+                    {% for tip in guide.tips %}
+                    <div class="tip-item"><span class="tip-icon">✓</span><p>{{ tip }}</p></div>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+
+        <aside class="detail-sidebar">
+            <div class="detail-sidebar-stack">
+                <figure class="detail-story-visual" id="detail-story-visual">
+                    <img id="detail-story-photo" alt="{{ airport.city }} travel atmosphere">
+                    <div class="detail-story-shade"></div>
+                    <figcaption>
+                        <small>LIVE DESTINATION STORY</small>
+                        <strong id="detail-story-caption">{{ airport.city }} · город в деталях</strong>
+                    </figcaption>
+                </figure>
+
+                <div class="booking-box">
+                    <span class="eyebrow">TRIP SNAPSHOT</span>
+                    <h3>{{ guide.ideal_days }}</h3>
+                    <p>{{ guide.pace }}</p>
+                    <div class="booking-price">
+                        <small>Билеты сейчас от</small>
+                        <strong>{% if stats.min_price %}{{ "{:,.0f}".format(stats.min_price).replace(",", " ") }} ₸{% else %}—{% endif %}</strong>
+                    </div>
+                    <div class="booking-actions">
+                        <a class="booking-primary" href="{{ url_for('home', destination_id=airport.airport_id) }}">Найти рейс</a>
+                        <a class="booking-secondary" href="{{ url_for('destinations') }}">Другие города</a>
+                    </div>
+                    <small class="booking-note">Travel guide — демонстрационная часть учебного проекта. Для реальной поездки перепроверяйте правила въезда, часы работы и цены.</small>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<script>
+const photo = document.getElementById('detail-city-photo');
+
+async function getHeroPhoto() {
+    const titles = [photo.dataset.city + ', ' + photo.dataset.country, photo.dataset.city];
+    for (const title of titles) {
+        try {
+            const api = 'https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=1800&titles=' + encodeURIComponent(title);
+            const response = await fetch(api);
+            if (!response.ok) continue;
+            const data = await response.json();
+            const page = Object.values(data.query?.pages || {})[0];
+            if (page?.thumbnail?.source) return page.thumbnail.source;
+        } catch (error) {
+            console.debug(error);
+        }
+    }
+    return 'https://picsum.photos/seed/' + encodeURIComponent('detail-' + photo.dataset.iata) + '/1800/1100';
+}
+
+getHeroPhoto().then((src) => {
+    photo.src = src;
+    photo.onload = () => photo.classList.add('loaded');
+});
+
+const description = document.getElementById('animated-description');
+const fullText = description.textContent.trim();
+if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    description.textContent = '';
+    let index = 0;
+    const timer = setInterval(() => {
+        index += Math.max(1, Math.ceil((fullText.length - index) / 18));
+        description.textContent = fullText.slice(0, index);
+        if (index >= fullText.length) clearInterval(timer);
+    }, 28);
+}
+
+const highlights = {{ guide.highlights | tojson }};
+const cityName = {{ airport.city | tojson }};
+const plannerOutput = document.getElementById('planner-output');
+const plannerButtons = document.querySelectorAll('.planner-button');
+
+function renderPlan(days) {
+    const plans = [];
+    const first = highlights[0] || 'центр города';
+    const second = highlights[1] || 'главные достопримечательности';
+    const third = highlights[2] || 'местную кухню';
+
+    plans.push({title: 'День 1 · Знакомство', text: `Начните с «${first}», затем прогуляйтесь по центральным районам ${cityName} и оставьте вечер для «${third}».`});
+    if (days >= 2) plans.push({title: 'День 2 · Глубже в город', text: `Посвятите первую половину дня теме «${second}», а вторую — району, который понравился больше всего в первый день.`});
+    if (days >= 3) plans.push({title: 'День 3 · Свободный маршрут', text: 'Добавьте музей, природу или короткую поездку за пределы центра. Этот день лучше оставить менее загруженным.'});
+
+    plannerOutput.innerHTML = '';
+    plans.forEach((plan) => {
+        const card = document.createElement('div');
+        card.className = 'planner-day';
+        card.innerHTML = `<strong>${plan.title}</strong><span>${plan.text}</span>`;
+        plannerOutput.appendChild(card);
+    });
+}
+
+plannerButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+        plannerButtons.forEach((item) => item.classList.remove('active'));
+        button.classList.add('active');
+        renderPlan(Number(button.dataset.days));
+    });
+});
+renderPlan(1);
+
+
+
+const detailWeather = document.getElementById('detail-weather');
+function detailWeatherEmoji(code, isDay) {
+    if (code === 0) return isDay ? '☀' : '☾';
+    if (code <= 3) return '⛅';
+    if ([45, 48].includes(code)) return '🌫';
+    if (code >= 51 && code <= 67) return '🌧';
+    if (code >= 71 && code <= 77) return '❄';
+    if (code >= 80 && code <= 82) return '🌦';
+    if (code >= 85 && code <= 86) return '🌨';
+    if (code >= 95) return '⛈';
+    return '◌';
+}
+
+async function loadDetailWeather() {
+    if (!detailWeather) return;
+    const key = `airline-weather-v1-${detailWeather.dataset.iata}`;
+    try {
+        const cached = JSON.parse(localStorage.getItem(key) || 'null');
+        if (cached && Date.now() - cached.savedAt < 30 * 60 * 1000) {
+            detailWeather.querySelector('.weather-icon').textContent = detailWeatherEmoji(cached.code, cached.isDay);
+            detailWeather.querySelector('.weather-temp').textContent = `${cached.temperature}°`;
+            detailWeather.hidden = false;
+            return;
+        }
+    } catch (_) {}
+    try {
+        const place = `${detailWeather.dataset.city}, ${detailWeather.dataset.country}`;
+        const geo = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(place)}&count=1&language=ru&format=json`).then(r => r.json());
+        const location = geo.results?.[0];
+        if (!location) return;
+        const weather = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,weather_code,is_day&timezone=auto`).then(r => r.json());
+        const data = {temperature: Math.round(Number(weather.current?.temperature_2m)), code: Number(weather.current?.weather_code ?? -1), isDay: Number(weather.current?.is_day ?? 1), savedAt: Date.now()};
+        if (!Number.isFinite(data.temperature)) return;
+        try { localStorage.setItem(key, JSON.stringify(data)); } catch (_) {}
+        detailWeather.querySelector('.weather-icon').textContent = detailWeatherEmoji(data.code, data.isDay);
+        detailWeather.querySelector('.weather-temp').textContent = `${data.temperature}°`;
+        detailWeather.hidden = false;
+    } catch (error) { console.debug('Detail weather unavailable', error); }
+}
+loadDetailWeather();
+
+const storyPhoto = document.getElementById('detail-story-photo');
+const storyCaption = document.getElementById('detail-story-caption');
+const storyPhotoCache = new Map();
+const storyLabels = {
+    landmarks: 'Главные места', streets: 'Улицы и ритм города', culture: 'Культура и атмосфера',
+    airport: 'Путешествие начинается', evening: 'Город после заката'
+};
+
+async function wikipediaStoryPhoto(kind) {
+    if (storyPhotoCache.has(kind)) return storyPhotoCache.get(kind);
+    const suffix = {landmarks:'landmarks skyline', streets:'street city center', culture:'culture museum', airport:'airport', evening:'night skyline'}[kind] || 'city';
+    const query = `${cityName} ${suffix}`;
+    try {
+        const api = 'https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=0&gsrlimit=6&gsrsearch=' + encodeURIComponent(query) + '&prop=pageimages&piprop=thumbnail&pithumbsize=1200';
+        const data = await fetch(api).then(r => r.json());
+        const pages = Object.values(data.query?.pages || {});
+        const found = pages.find(page => page.thumbnail?.source)?.thumbnail?.source;
+        if (found) { storyPhotoCache.set(kind, found); return found; }
+    } catch (error) { console.debug('Story image unavailable', error); }
+    const fallback = 'https://picsum.photos/seed/' + encodeURIComponent(`${cityName}-${kind}`) + '/1200/850';
+    storyPhotoCache.set(kind, fallback);
+    return fallback;
+}
+
+async function setStoryPhoto(kind) {
+    if (!storyPhoto) return;
+    const src = await wikipediaStoryPhoto(kind);
+    if (storyPhoto.dataset.kind === kind) return;
+    storyPhoto.classList.add('is-switching');
+    const preload = new Image();
+    preload.onload = () => {
+        storyPhoto.src = src;
+        storyPhoto.dataset.kind = kind;
+        storyCaption.textContent = `${cityName} · ${storyLabels[kind] || 'город в деталях'}`;
+        requestAnimationFrame(() => storyPhoto.classList.remove('is-switching'));
+    };
+    preload.src = src;
+}
+setStoryPhoto('landmarks');
+
+const storyObserver = new IntersectionObserver((entries) => {
+    const visible = entries.filter(entry => entry.isIntersecting).sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (visible) setStoryPhoto(visible.target.dataset.story);
+}, {threshold:[.2,.45,.7], rootMargin:'-15% 0px -45% 0px'});
+document.querySelectorAll('[data-story]').forEach(section => storyObserver.observe(section));
+
+const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            revealObserver.unobserve(entry.target);
+        }
+    });
+}, {threshold: .12});
+document.querySelectorAll('.reveal').forEach((item) => revealObserver.observe(item));
+</script>
+{% endblock %}
